@@ -1,0 +1,190 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+    Layout = "~/Pages/Shared/_DevExtremeLayout.cshtml";
+}
+
+@using DevExtreme.AspNet.Mvc
+@using Core.Entities
+@Html.AntiForgeryToken()
+
+<h2 class="m-4 text-center">Organismos</h2>
+<hr />
+
+
+
+<div class="shadow p-3 mb-5 bg-white rounded">
+
+
+
+    @(Html.DevExtreme().DataGrid<Organismo>()
+    .ID("gridOrganismo")
+    .SearchPanel(s => s
+        .Visible(true)
+        .HighlightCaseSensitive(false)
+        .Width(400)
+    )
+    .DataSource(d => d.RemoteController().Key("Id")
+    .LoadUrl(Url.Page("Index", "CargaPrincipal")).UpdateMethod("PUT").DeleteMethod("DELETE").InsertMethod("POST")
+    .UpdateUrl(Url.Page("Index", "UpdateOrganismo"))
+    .InsertUrl(Url.Page("Index", "InsertOrganismo"))
+    .DeleteUrl(Url.Page("Index", "KillOrganismo"))
+    )
+    .RemoteOperations(s => s.Paging(true).Sorting(true).Filtering(true))
+    .Paging(s => s.PageSize(12))
+      .Pager(pager =>
+      {
+          pager.Visible(true);
+          pager.DisplayMode(GridPagerDisplayMode.Full);
+          pager.ShowPageSizeSelector(true);
+          pager.AllowedPageSizes(new JS("[5, 10, 15]"));
+          pager.ShowInfo(true);
+          pager.ShowNavigationButtons(true);
+      })
+      .FilterRow(filterRow => filterRow
+        .Visible(true)
+        .ApplyFilter(GridApplyFilterMode.Auto)
+        )
+     .Columns(d =>
+     {
+         d.AddFor(f => f.Id).Caption("ID").Alignment(HorizontalAlignment.Center).AllowEditing(true).Visible(false);
+         d.AddFor(f => f.Nombre).Caption("NOMBRE").Alignment(HorizontalAlignment.Center);
+         d.AddFor(f => f.Codigo).Caption("CODIGO").Alignment(HorizontalAlignment.Center);
+         d.AddFor(f => f.Direccion).Caption("DIRECCION").Alignment(HorizontalAlignment.Center);
+         d.AddFor(f => f.Fechaalta).Caption("FECHA ALTA").Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy");
+         d.AddFor(f => f.Fechabaja).Caption("FECHA BAJA").Alignment(HorizontalAlignment.Center).Format("dd/MM/yyyy");
+         d.AddFor(f => f.Poblacion).Caption("POBLACION").Alignment(HorizontalAlignment.Center);
+         d.AddFor(f => f.Idpais).Caption("PAIS").Alignment(HorizontalAlignment.Center)
+         .Lookup(lookup => lookup.DataSource(d => d.RemoteController().LoadUrl(Url.Page("Index", "CargaPaises")).Key("Id")).DisplayExpr("Snombre").ValueExpr("Id"));
+
+
+         d.AddFor(f => f.Idcomunidad).Caption("COMUNIDAD").Alignment(HorizontalAlignment.Center)
+         .Lookup(lookup => lookup.DataSource(d => d.RemoteController().LoadUrl(Url.Page("Index", "CargaComunidades")).Key("Id")).DisplayExpr("Sdescripcion").ValueExpr("Id"));
+
+         d.AddFor(f => f.Idpaisambito).Caption("AMBITO").Alignment(HorizontalAlignment.Center)
+         .Lookup(lookup => lookup.DataSource(d => d.RemoteController().LoadUrl(Url.Page("Index", "CargaPaises")).Key("Id")).DisplayExpr("Snombre").ValueExpr("Id"));
+         d.AddFor(f => f.Idprovincia).Caption("PROVINCIA").Alignment(HorizontalAlignment.Center)
+         .Lookup(lookup => lookup.DataSource(d => d.RemoteController().LoadUrl(Url.Page("Index", "CargaProvincias")).Key("Id")).DisplayExpr("Sdescripcion").ValueExpr("Id"));
+         d.AddFor(f => f.Idsubtipoorganismo).Caption("SUBTIPO ORGANISMO").Alignment(HorizontalAlignment.Center)
+         .Lookup(lookup => lookup.DataSource(d => d.RemoteController().LoadUrl(Url.Page("Index", "CargaSubtiposOrganismos")).Key("Id")).DisplayExpr("Subtipo").ValueExpr("Id"));
+         d.AddFor(f => f.Idtipoorganismo).Caption("TIPO ORGANISMO").Alignment(HorizontalAlignment.Center)
+         .Lookup(lookup => lookup.DataSource(d => d.RemoteController().LoadUrl(Url.Page("Index", "CargaTipoOrganismo")).Key("Id")).DisplayExpr("Descripcion").ValueExpr("Id"));
+
+
+     })
+     .MasterDetail(master => { master.Enabled(true).Template(new TemplateName("DetalleOrganismo")); })
+     .Editing(e => e.Mode(GridEditMode.Popup)
+            .AllowUpdating(true)
+            .AllowAdding(true)
+            .AllowDeleting(true)
+            .Popup(p => p
+                .Title("Informacion Organismo")
+                .ShowTitle(true)
+                .Width(700)
+                .Height(525)
+            )
+            .Form(f => f.Items(items =>
+            {
+                items.AddGroup()
+                    .ColCount(2)
+                    .ColSpan(2)
+                    .Items(groupItems =>
+                    {
+                        groupItems.AddSimpleFor(m => m.Id);
+                        groupItems.AddSimpleFor(m => m.Nombre);
+                        groupItems.AddSimpleFor(m => m.Codigo);
+                        groupItems.AddSimpleFor(m => m.Direccion);
+                        groupItems.AddSimpleFor(m => m.Fechaalta);
+                        groupItems.AddSimpleFor(m => m.Fechabaja);
+                        groupItems.AddSimpleFor(m => m.Motivobaja);
+                        groupItems.AddSimpleFor(m => m.Poblacion);
+                        groupItems.AddSimpleFor(m => m.Web);
+
+                        groupItems.AddSimpleFor(m => m.Idcomunidad);
+                        groupItems.AddSimpleFor(m => m.Idpais);
+                        groupItems.AddSimpleFor(m => m.Idpaisambito);
+                        groupItems.AddSimpleFor(m => m.Idprovincia);
+                        groupItems.AddSimpleFor(m => m.Idsubtipoorganismo);
+                        groupItems.AddSimpleFor(m => m.Idtipoorganismo);
+                    });
+            }))
+        )
+)
+
+
+</div>
+
+@using (Html.DevExtreme().NamedTemplate("DetalleOrganismo"))
+{
+
+    <h4 class="m-4">Contactos</h4>
+
+    @(Html.DevExtreme().DataGrid<Organismocontacto>()
+
+    .DataSource(d => d.RemoteController().Key("Id")
+    .LoadUrl(Url.Page("Index", "CargaContactos")).LoadParams(new { Id = new JS("data.Id") }))
+    .RemoteOperations(s => s.Paging(true).Sorting(true).Filtering(true))
+    .Paging(s => s.PageSize(5))
+      .Pager(pager =>
+      {
+          pager.Visible(true);
+          pager.DisplayMode(GridPagerDisplayMode.Full);
+          pager.ShowPageSizeSelector(true);
+          pager.AllowedPageSizes(new JS("[5, 10, 15]"));
+          pager.ShowInfo(true);
+          pager.ShowNavigationButtons(true);
+      })
+      .FilterRow(filterRow => filterRow
+        .Visible(true)
+        .ApplyFilter(GridApplyFilterMode.Auto)
+    )
+     .Columns(d =>
+     {
+         d.AddFor(f => f.Contacto).Caption("CONTACTO").Alignment(HorizontalAlignment.Center);
+         d.AddFor(f => f.Email).Caption("EMAIL").Alignment(HorizontalAlignment.Center);
+         d.AddFor(f => f.Telefono).Caption("TELEFONO").Alignment(HorizontalAlignment.Center);
+     })
+)
+
+    <h4 class="m-4">Cuentas</h4>
+
+    @(Html.DevExtreme().DataGrid<Organismocuentasbancaria>()
+
+    .DataSource(d => d.RemoteController().Key("Id")
+    .LoadUrl(Url.Page("Index", "CargaCuentas")).LoadParams(new { Id = new JS("data.Id") }))
+    .RemoteOperations(s => s.Paging(true).Sorting(true).Filtering(true))
+    .Paging(s => s.PageSize(5))
+      .Pager(pager =>
+      {
+          pager.Visible(true);
+          pager.DisplayMode(GridPagerDisplayMode.Full);
+          pager.ShowPageSizeSelector(true);
+          pager.AllowedPageSizes(new JS("[5, 10, 15]"));
+          pager.ShowInfo(true);
+          pager.ShowNavigationButtons(true);
+      })
+      .FilterRow(filterRow => filterRow
+        .Visible(true)
+        .ApplyFilter(GridApplyFilterMode.Auto)
+    )
+     .Columns(d =>
+     {
+         d.AddFor(f => f.Ccc).Caption("CCC").Alignment(HorizontalAlignment.Center);
+         d.AddFor(f => f.Idcategoria).Caption("CATEGORIA").Alignment(HorizontalAlignment.Center);
+         d.AddFor(f => f.Idpais).Caption("PAIS").Alignment(HorizontalAlignment.Center)
+         .Lookup(lookup => lookup
+                    .DataSource(d => d.RemoteController().LoadUrl(Url.Page("Index", "CargaPaises")).Key("Id")).DisplayExpr("Snombre").ValueExpr("Id")
+                );
+     })
+)
+
+}
+
+<script>
+    $.ajaxSetup({
+        data: {
+            __RequestVerificationToken: document.getElementsByName("__RequestVerificationToken")[0].value
+        }
+    });  
+</script>
